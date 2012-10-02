@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Bundle-Name: org.ubimix.commons.parser.css
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-Version: 1.0.0
+Bundle-ManifestVersion: 2
+Bundle-Description: CSS Selectors parser
+Bundle-License: http://www.apache.org/licenses/LICENSE-2.0
+Bundle-SymbolicName: org.ubimix.commons.parser.css
+Export-Package: org.ubimix.commons.parser.css;version="1.0.0"
+Import-Package: org.ubimix.commons.parser;version="1.0.0",
+ org.ubimix.commons.parser.base;version="1.0.0",
+ org.ubimix.commons.parser.text;version="1.0.0"
