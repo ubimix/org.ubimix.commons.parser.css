@@ -7,8 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.ubimix.commons.parser.AbstractParser;
-import org.ubimix.commons.parser.AbstractParser.IParserListener;
-import org.ubimix.commons.parser.StreamToken;
+import org.ubimix.commons.parser.ITokenizer.StreamToken;
 import org.ubimix.commons.parser.css.CssSelectorTokenizer.CssAttrSelectorToken;
 import org.ubimix.commons.parser.css.CssSelectorTokenizer.CssCombinatorToken;
 import org.ubimix.commons.parser.css.CssSelectorTokenizer.CssCompositeAttrSelectorToken;
@@ -56,7 +55,9 @@ public class CssSelectorParser
 
     }
 
-    public interface ICssSelectorListener extends IParserListener {
+    public interface ICssSelectorListener
+        extends
+        AbstractParser.IParserListener {
 
         void beginAttributeGroup();
 

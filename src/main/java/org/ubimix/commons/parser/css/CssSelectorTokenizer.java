@@ -6,12 +6,11 @@ package org.ubimix.commons.parser.css;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.ubimix.commons.parser.AbstractTokenizer;
 import org.ubimix.commons.parser.CharStream;
 import org.ubimix.commons.parser.CharStream.Marker;
 import org.ubimix.commons.parser.CharStream.Pointer;
 import org.ubimix.commons.parser.CompositeTokenizer;
-import org.ubimix.commons.parser.ITokenizer;
-import org.ubimix.commons.parser.StreamToken;
 import org.ubimix.commons.parser.base.QuotedValueTokenizer;
 import org.ubimix.commons.parser.css.CssSelectorTokenizer.CssSimpleAttrSelectorToken.MatchType;
 
@@ -24,13 +23,6 @@ public class CssSelectorTokenizer extends CompositeTokenizer {
      * @author kotelnikov
      */
     public static class CssAttrSelectorToken extends StreamToken {
-        public CssAttrSelectorToken(
-            String key,
-            Pointer begin,
-            Pointer end,
-            String str) {
-            super(key, begin, end, str);
-        }
     }
 
     /**
@@ -39,10 +31,6 @@ public class CssSelectorTokenizer extends CompositeTokenizer {
     public static class CssCombinatorToken extends StreamToken {
 
         private char fType;
-
-        public CssCombinatorToken(Pointer begin, Pointer end, String str) {
-            super(CssDict.COMBINATOR, begin, end, str);
-        }
 
         public char getType() {
             return fType;
@@ -54,7 +42,12 @@ public class CssSelectorTokenizer extends CompositeTokenizer {
 
     }
 
-    public static class CssCombinatorTokenizer implements ITokenizer {
+    private static class CssCombinatorTokenizer extends AbstractTokenizer {
+
+        @Override
+        protected CssCombinatorToken newToken() {
+            return new CssCombinatorToken();
+        }
 
         @Override
         public CssCombinatorToken read(CharStream stream) {
@@ -91,7 +84,7 @@ public class CssSelectorTokenizer extends CompositeTokenizer {
             }
             if (type != 0) {
                 Pointer end = stream.getPointer();
-                result = new CssCombinatorToken(begin, end, buf.toString());
+                result = newToken(begin, end, buf.toString());
                 result.setType(type);
             }
             return result;
@@ -102,14 +95,6 @@ public class CssSelectorTokenizer extends CompositeTokenizer {
         extends
         CssAttrSelectorToken {
         private List<CssSimpleAttrSelectorToken> fAttrSelectorTokens = new ArrayList<CssSimpleAttrSelectorToken>();
-
-        public CssCompositeAttrSelectorToken(
-            String key,
-            Pointer begin,
-            Pointer end,
-            String str) {
-            super(key, begin, end, str);
-        }
 
         public List<CssSimpleAttrSelectorToken> getAttrSelectorTokens() {
             return fAttrSelectorTokens;
@@ -124,153 +109,19 @@ public class CssSelectorTokenizer extends CompositeTokenizer {
         }
     }
 
-    public static class CssSimpleAttrSelectorToken extends CssAttrSelectorToken {
+    private static class CssCompositeAttrSelectorTokenizer
+        extends
+        AbstractTokenizer {
 
-        public static enum MatchType {
-            DASHMATCH("|="), INCLUDES("~="), MATCH("="), NONE(""), PREFIXMATCH(
-                    "^="), SUBSTRINGMATCH("*="), SUFFIXMATCH("$=");
-            private String fPattern;
+        public static CssCompositeAttrSelectorTokenizer INSTANCE = new CssCompositeAttrSelectorTokenizer();
 
-            MatchType(String pattern) {
-                fPattern = pattern;
-            }
-
-            @Override
-            public String toString() {
-                return fPattern;
-            }
-
-        }
-
-        private String fAttrName;
-
-        public MatchType fMatchType = MatchType.NONE;
-
-        private String fMatchValue;
-
-        public CssSimpleAttrSelectorToken(
-            String key,
-            Pointer begin,
-            Pointer end,
-            String str) {
-            super(key, begin, end, str);
-        }
-
-        public String getAttrName() {
-            return fAttrName;
-        }
-
-        public MatchType getMatchType() {
-            return fMatchType;
-        }
-
-        public String getMatchValue() {
-            return fMatchValue;
-        }
-
-        public void setAttrName(String attrName) {
-            fAttrName = attrName;
-        }
-
-        public void setMatchType(MatchType type) {
-            fMatchType = type != null ? type : MatchType.NONE;
-        }
-
-        public void setMatchValue(String value) {
-            fMatchValue = value;
-        }
-
-    }
-
-    public static class CssTagSelectorToken extends StreamToken {
-
-        private List<CssAttrSelectorToken> fAttributSelectors;
-
-        private String fTagNameSelectorToken;
-
-        public CssTagSelectorToken(Pointer begin, Pointer end, String str) {
-            super(CssDict.SELECTOR, begin, end, str);
-        }
-
-        public List<CssAttrSelectorToken> getAttributSelectors() {
-            if (fAttributSelectors == null) {
-                fAttributSelectors = new ArrayList<CssAttrSelectorToken>();
-            }
-            return fAttributSelectors;
-        }
-
-        public String getNameToken() {
-            return fTagNameSelectorToken;
-        }
-
-        public void setAttributes(List<CssAttrSelectorToken> attrSelectors) {
-            fAttributSelectors = attrSelectors;
-        }
-
-        public void setNameToken(String nameToken) {
-            fTagNameSelectorToken = nameToken;
-        }
-
-    }
-
-    public static class CssTagSelectorTokenizer implements ITokenizer {
-
-        private QuotedValueTokenizer fQuotedValueTokenizer = new QuotedValueTokenizer(
-            "");
-
-        protected boolean isValueChar(char ch, int pos) {
-            return !Character.isSpaceChar(ch)
-                && ch != '.'
-                && ch != '#'
-                && ch != '['
-                && ch != ']';
+        @Override
+        protected CssCompositeAttrSelectorToken newToken() {
+            return new CssCompositeAttrSelectorToken();
         }
 
         @Override
-        public CssTagSelectorToken read(CharStream stream) {
-            CssTagSelectorToken result = null;
-            ArrayList<CssAttrSelectorToken> attributes = null;
-            Pointer begin = stream.getPointer();
-            String nameToken = readName(stream);
-            while (true) {
-                CssAttrSelectorToken token = readAttrSelectorToken(stream);
-                if (token == null) {
-                    break;
-                }
-                if (attributes == null) {
-                    attributes = new ArrayList<CssAttrSelectorToken>();
-                }
-                attributes.add(token);
-            }
-            Pointer end = stream.getPointer();
-            if (nameToken != null || attributes != null) {
-                StringBuilder buf = new StringBuilder();
-                if (nameToken != null) {
-                    buf.append(nameToken);
-                }
-                if (attributes != null) {
-                    for (CssAttrSelectorToken token : attributes) {
-                        buf.append(token.getContent());
-                    }
-                }
-                result = new CssTagSelectorToken(begin, end, buf.toString());
-                result.setNameToken(nameToken);
-                result.setAttributes(attributes);
-            }
-            return result;
-        }
-
-        protected CssAttrSelectorToken readAttrSelectorToken(CharStream stream) {
-            CssAttrSelectorToken token;
-            token = readSimpleToken(stream);
-            if (token == null) {
-                token = readCompositeToken(stream);
-            }
-            return token;
-        }
-
-        protected CssCompositeAttrSelectorToken readCompositeToken(
-            CharStream stream) {
+        public CssCompositeAttrSelectorToken read(CharStream stream) {
             char ch = stream.getChar();
             CssCompositeAttrSelectorToken result = null;
             if (ch == '[') {
@@ -281,7 +132,8 @@ public class CssSelectorTokenizer extends CompositeTokenizer {
                     List<CssSimpleAttrSelectorToken> attrTokens = null;
                     while (ch != ']' && !stream.isTerminated()) {
                         skipSpaces(stream);
-                        CssSimpleAttrSelectorToken attrToken = readMatchToken(stream);
+                        CssSimpleAttrSelectorToken attrToken = CssInternalAttrSelectorTokenizer.INSTANCE
+                            .read(stream);
                         if (attrToken != null) {
                             if (attrTokens == null) {
                                 attrTokens = new ArrayList<CssSimpleAttrSelectorToken>();
@@ -301,11 +153,7 @@ public class CssSelectorTokenizer extends CompositeTokenizer {
                     Pointer begin = marker.getPointer();
                     Pointer end = stream.getPointer();
                     String str = marker.getSubstring(begin, end);
-                    result = new CssCompositeAttrSelectorToken(
-                        CssDict.ATTR_COMPOSITE,
-                        begin,
-                        end,
-                        str);
+                    result = newToken(begin, end, str);
                     result.setAttrSelectorTokens(attrTokens);
                 } finally {
                     marker.close(false);
@@ -314,7 +162,23 @@ public class CssSelectorTokenizer extends CompositeTokenizer {
             return result;
         }
 
-        private CssSimpleAttrSelectorToken readMatchToken(CharStream stream) {
+    }
+
+    private static class CssInternalAttrSelectorTokenizer
+        extends
+        AbstractTokenizer {
+
+        public static CssInternalAttrSelectorTokenizer INSTANCE = new CssInternalAttrSelectorTokenizer();
+
+        private QuotedValueTokenizer fQuotedValueTokenizer = new QuotedValueTokenizer();
+
+        @Override
+        protected StreamToken newToken() {
+            return new CssSimpleAttrSelectorToken();
+        }
+
+        @Override
+        public CssSimpleAttrSelectorToken read(CharStream stream) {
             CssSimpleAttrSelectorToken result = null;
             Marker marker = stream.markPosition();
             try {
@@ -377,11 +241,7 @@ public class CssSelectorTokenizer extends CompositeTokenizer {
                         ? stream.getPointer()
                         : nameEnd;
                     String match = marker.getSubstring(matchBegin, matchEnd);
-                    result = new CssSimpleAttrSelectorToken(
-                        "",
-                        matchBegin,
-                        matchEnd,
-                        match);
+                    result = newToken(matchBegin, matchEnd, match);
                     result.setAttrName(nameToken);
                     result.setMatchType(matchType);
                     String value = marker.getSubstring(beginValue, endValue);
@@ -393,7 +253,71 @@ public class CssSelectorTokenizer extends CompositeTokenizer {
             return result;
         }
 
-        protected CssSimpleAttrSelectorToken readSimpleToken(CharStream stream) {
+    }
+
+    public static class CssSimpleAttrSelectorToken extends CssAttrSelectorToken {
+
+        public static enum MatchType {
+            DASHMATCH("|="), INCLUDES("~="), MATCH("="), NONE(""), PREFIXMATCH(
+                    "^="), SUBSTRINGMATCH("*="), SUFFIXMATCH("$=");
+            private String fPattern;
+
+            MatchType(String pattern) {
+                fPattern = pattern;
+            }
+
+            @Override
+            public String toString() {
+                return fPattern;
+            }
+
+        }
+
+        private String fAttrName;
+
+        public MatchType fMatchType = MatchType.NONE;
+
+        private String fMatchValue;
+
+        public String getAttrName() {
+            return fAttrName;
+        }
+
+        public MatchType getMatchType() {
+            return fMatchType;
+        }
+
+        public String getMatchValue() {
+            return fMatchValue;
+        }
+
+        public void setAttrName(String attrName) {
+            fAttrName = attrName;
+        }
+
+        public void setMatchType(MatchType type) {
+            fMatchType = type != null ? type : MatchType.NONE;
+        }
+
+        public void setMatchValue(String value) {
+            fMatchValue = value;
+        }
+
+    }
+
+    private static class CssSimpleAttrSelectorTokenizer
+        extends
+        AbstractTokenizer {
+
+        public static CssSimpleAttrSelectorTokenizer INSTANCE = new CssSimpleAttrSelectorTokenizer();
+
+        @Override
+        protected StreamToken newToken() {
+            return new CssSimpleAttrSelectorToken();
+        }
+
+        @Override
+        public CssSimpleAttrSelectorToken read(CharStream stream) {
             CssSimpleAttrSelectorToken result = null;
             String attr = null;
             int valuePos = 1;
@@ -401,14 +325,14 @@ public class CssSelectorTokenizer extends CompositeTokenizer {
             char ch = stream.getChar();
             switch (ch) {
                 case ':':
-                    attr = CssDict.ATTR_PSEUDO_CLASS_SELECTOR;
+                    attr = ATTR_PSEUDO_CLASS_SELECTOR;
                     break;
                 case '#':
                     matchType = CssSimpleAttrSelectorToken.MatchType.MATCH;
-                    attr = CssDict.ATTR_ID_SELECTOR;
+                    attr = ATTR_ID_SELECTOR;
                     break;
                 case '.':
-                    attr = CssDict.ATTR_CLASS_SELECTOR;
+                    attr = ATTR_CLASS_SELECTOR;
                     break;
             }
 
@@ -416,9 +340,9 @@ public class CssSelectorTokenizer extends CompositeTokenizer {
                 Marker marker = stream.markPosition();
                 stream.incPos();
                 try {
-                    if (CssDict.ATTR_PSEUDO_CLASS_SELECTOR.equals(attr)) {
+                    if (ATTR_PSEUDO_CLASS_SELECTOR.equals(attr)) {
                         if (stream.getChar() == ':') {
-                            attr = CssDict.ATTR_PSEUDO_ELEMENT_SELECTOR;
+                            attr = ATTR_PSEUDO_ELEMENT_SELECTOR;
                             valuePos = 2;
                             stream.incPos();
                         }
@@ -428,11 +352,7 @@ public class CssSelectorTokenizer extends CompositeTokenizer {
                         Pointer end = stream.getPointer();
                         int len = end.len(begin);
                         String str = marker.getSubstring(len);
-                        result = new CssSimpleAttrSelectorToken(
-                            attr,
-                            begin,
-                            end,
-                            str);
+                        result = newToken(begin, end, str);
                         result.setAttrName(attr);
                         result.setMatchType(matchType);
                         String value = str.substring(valuePos);
@@ -444,26 +364,107 @@ public class CssSelectorTokenizer extends CompositeTokenizer {
             }
             return result;
         }
+    }
 
-        private void skipSpaces(CharStream stream) {
-            for (; Character.isSpaceChar(stream.getChar()); stream.incPos()) {
+    public static class CssTagSelectorToken extends StreamToken {
+
+        private List<CssAttrSelectorToken> fAttributSelectors;
+
+        private String fTagNameSelectorToken;
+
+        public List<CssAttrSelectorToken> getAttributSelectors() {
+            if (fAttributSelectors == null) {
+                fAttributSelectors = new ArrayList<CssAttrSelectorToken>();
             }
+            return fAttributSelectors;
         }
 
-        protected boolean skipValue(CharStream stream) {
-            boolean result = false;
-            char ch = stream.getChar();
-            int i = 0;
-            while (isValueChar(ch, i)) {
-                i++;
-                result = true;
-                if (!stream.incPos()) {
+        public String getNameToken() {
+            return fTagNameSelectorToken;
+        }
+
+        public void setAttributes(List<CssAttrSelectorToken> attrSelectors) {
+            fAttributSelectors = attrSelectors;
+        }
+
+        public void setNameToken(String nameToken) {
+            fTagNameSelectorToken = nameToken;
+        }
+
+    }
+
+    public static class CssTagSelectorTokenizer extends AbstractTokenizer {
+
+        @Override
+        protected StreamToken newToken() {
+            return new CssTagSelectorToken();
+        }
+
+        @Override
+        public CssTagSelectorToken read(CharStream stream) {
+            CssTagSelectorToken result = null;
+            ArrayList<CssAttrSelectorToken> attributes = null;
+            Pointer begin = stream.getPointer();
+            String nameToken = readName(stream);
+            while (true) {
+                CssAttrSelectorToken token = readAttrSelectorToken(stream);
+                if (token == null) {
                     break;
                 }
-                ch = stream.getChar();
+                if (attributes == null) {
+                    attributes = new ArrayList<CssAttrSelectorToken>();
+                }
+                attributes.add(token);
+            }
+            Pointer end = stream.getPointer();
+            if (nameToken != null || attributes != null) {
+                StringBuilder buf = new StringBuilder();
+                if (nameToken != null) {
+                    buf.append(nameToken);
+                }
+                if (attributes != null) {
+                    for (CssAttrSelectorToken token : attributes) {
+                        buf.append(token.getText());
+                    }
+                }
+                result = newToken(begin, end, buf.toString());
+                result.setNameToken(nameToken);
+                result.setAttributes(attributes);
             }
             return result;
         }
+
+        protected CssAttrSelectorToken readAttrSelectorToken(CharStream stream) {
+            CssAttrSelectorToken token;
+            token = CssSimpleAttrSelectorTokenizer.INSTANCE.read(stream);
+            if (token == null) {
+                token = CssCompositeAttrSelectorTokenizer.INSTANCE.read(stream);
+            }
+            return token;
+        }
+
+    }
+
+    public static final String ATTR_CLASS_SELECTOR = "class";
+
+    public static final String ATTR_COMPOSITE = "~composite";
+
+    public static String ATTR_ID_SELECTOR = "id";
+
+    public static final String ATTR_PSEUDO_CLASS_SELECTOR = ":class";
+
+    public static final String ATTR_PSEUDO_ELEMENT_SELECTOR = ":element";
+
+    public static final String COMBINATOR = "combinator";
+
+    public static final String SELECTOR = "selector";
+
+    private static boolean isValueChar(char ch, int pos) {
+        return !Character.isSpaceChar(ch)
+            && ch != '.'
+            && ch != '#'
+            && ch != '['
+            && ch != ']';
     }
 
     private static String readIdent(CharStream stream) {
@@ -506,6 +507,26 @@ public class CssSelectorTokenizer extends CompositeTokenizer {
         } finally {
             marker.close(result == null);
         }
+    }
+
+    private static void skipSpaces(CharStream stream) {
+        for (; Character.isSpaceChar(stream.getChar()); stream.incPos()) {
+        }
+    }
+
+    private static boolean skipValue(CharStream stream) {
+        boolean result = false;
+        char ch = stream.getChar();
+        int i = 0;
+        while (isValueChar(ch, i)) {
+            i++;
+            result = true;
+            if (!stream.incPos()) {
+                break;
+            }
+            ch = stream.getChar();
+        }
+        return result;
     }
 
     public CssSelectorTokenizer() {

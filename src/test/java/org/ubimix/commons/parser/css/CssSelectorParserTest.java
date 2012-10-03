@@ -22,6 +22,8 @@ public class CssSelectorParserTest extends TestCase {
     }
 
     public void test() {
+        test("a.toto", "a[class~=toto]");
+
         test("", "");
         test("a.toto", "a[class~=toto]");
         test("a.toto#tata", "a[class~=toto id=tata]");

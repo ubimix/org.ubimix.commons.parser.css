@@ -245,7 +245,7 @@ public class CssSelectorTokenizerTest extends TestCase {
             int i = 0;
             for (String attr : attrs) {
                 CssAttrSelectorToken attrToken = attributeTokens.get(i++);
-                assertEquals(attr, attrToken.getContent());
+                assertEquals(attr, attrToken.getText());
             }
         } else {
             assertTrue(attributeTokens.isEmpty());
