@@ -11,6 +11,7 @@ import org.ubimix.commons.parser.CharStream;
 import org.ubimix.commons.parser.CharStream.Marker;
 import org.ubimix.commons.parser.CharStream.Pointer;
 import org.ubimix.commons.parser.CompositeTokenizer;
+import org.ubimix.commons.parser.StreamToken;
 import org.ubimix.commons.parser.base.QuotedValueTokenizer;
 import org.ubimix.commons.parser.css.CssSelectorTokenizer.CssSimpleAttrSelectorToken.MatchType;
 
