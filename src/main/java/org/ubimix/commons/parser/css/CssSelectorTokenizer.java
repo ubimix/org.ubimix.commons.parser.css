@@ -7,10 +7,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.ubimix.commons.parser.AbstractTokenizer;
-import org.ubimix.commons.parser.CharStream;
-import org.ubimix.commons.parser.CharStream.Marker;
-import org.ubimix.commons.parser.CharStream.Pointer;
 import org.ubimix.commons.parser.CompositeTokenizer;
+import org.ubimix.commons.parser.ICharStream;
+import org.ubimix.commons.parser.ICharStream.IMarker;
+import org.ubimix.commons.parser.ICharStream.IPointer;
 import org.ubimix.commons.parser.StreamToken;
 import org.ubimix.commons.parser.base.QuotedValueTokenizer;
 import org.ubimix.commons.parser.css.CssSelectorTokenizer.CssSimpleAttrSelectorToken.MatchType;
@@ -51,11 +51,11 @@ public class CssSelectorTokenizer extends CompositeTokenizer {
         }
 
         @Override
-        public CssCombinatorToken read(CharStream stream) {
+        public CssCombinatorToken read(ICharStream stream) {
             CssCombinatorToken result = null;
             StringBuilder buf = null;
             char type = 0;
-            Pointer begin = stream.getPointer();
+            ICharStream.IPointer begin = stream.getPointer();
             char ch = stream.getChar();
             while (Character.isSpaceChar(ch)) {
                 if (buf == null) {
@@ -84,7 +84,7 @@ public class CssSelectorTokenizer extends CompositeTokenizer {
                 }
             }
             if (type != 0) {
-                Pointer end = stream.getPointer();
+                ICharStream.IPointer end = stream.getPointer();
                 result = newToken(begin, end, buf.toString());
                 result.setType(type);
             }
@@ -122,11 +122,11 @@ public class CssSelectorTokenizer extends CompositeTokenizer {
         }
 
         @Override
-        public CssCompositeAttrSelectorToken read(CharStream stream) {
+        public CssCompositeAttrSelectorToken read(ICharStream stream) {
             char ch = stream.getChar();
             CssCompositeAttrSelectorToken result = null;
             if (ch == '[') {
-                Marker marker = stream.markPosition();
+                ICharStream.IMarker marker = stream.markPosition();
                 try {
                     stream.incPos();
                     ch = stream.getChar();
@@ -151,9 +151,9 @@ public class CssSelectorTokenizer extends CompositeTokenizer {
                         }
                     }
                     stream.incPos();
-                    Pointer begin = marker.getPointer();
-                    Pointer end = stream.getPointer();
-                    String str = marker.getSubstring(begin, end);
+                    ICharStream.IPointer begin = marker.getPointer();
+                    ICharStream.IPointer end = stream.getPointer();
+                    String str = getString(marker, begin, end);
                     result = newToken(begin, end, str);
                     result.setAttrSelectorTokens(attrTokens);
                 } finally {
@@ -179,15 +179,15 @@ public class CssSelectorTokenizer extends CompositeTokenizer {
         }
 
         @Override
-        public CssSimpleAttrSelectorToken read(CharStream stream) {
+        public CssSimpleAttrSelectorToken read(ICharStream stream) {
             CssSimpleAttrSelectorToken result = null;
-            Marker marker = stream.markPosition();
+            ICharStream.IMarker marker = stream.markPosition();
             try {
                 String nameToken = readName(stream);
                 CssSimpleAttrSelectorToken.MatchType matchType = null;
-                Pointer nameEnd = stream.getPointer();
-                Pointer beginValue;
-                Pointer endValue;
+                ICharStream.IPointer nameEnd = stream.getPointer();
+                ICharStream.IPointer beginValue;
+                ICharStream.IPointer endValue;
                 if (nameToken != null) {
                     skipSpaces(stream);
                     char ch = stream.getChar();
@@ -237,15 +237,15 @@ public class CssSelectorTokenizer extends CompositeTokenizer {
                             endValue = stream.getPointer();
                         }
                     }
-                    Pointer matchBegin = marker.getPointer();
-                    Pointer matchEnd = (matchType != CssSimpleAttrSelectorToken.MatchType.NONE)
+                    ICharStream.IPointer matchBegin = marker.getPointer();
+                    ICharStream.IPointer matchEnd = (matchType != CssSimpleAttrSelectorToken.MatchType.NONE)
                         ? stream.getPointer()
                         : nameEnd;
-                    String match = marker.getSubstring(matchBegin, matchEnd);
+                    String match = getString(marker, matchBegin, matchEnd);
                     result = newToken(matchBegin, matchEnd, match);
                     result.setAttrName(nameToken);
                     result.setMatchType(matchType);
-                    String value = marker.getSubstring(beginValue, endValue);
+                    String value = getString(marker, beginValue, endValue);
                     result.setMatchValue(value);
                 }
             } finally {
@@ -318,7 +318,7 @@ public class CssSelectorTokenizer extends CompositeTokenizer {
         }
 
         @Override
-        public CssSimpleAttrSelectorToken read(CharStream stream) {
+        public CssSimpleAttrSelectorToken read(ICharStream stream) {
             CssSimpleAttrSelectorToken result = null;
             String attr = null;
             int valuePos = 1;
@@ -338,7 +338,7 @@ public class CssSelectorTokenizer extends CompositeTokenizer {
             }
 
             if (attr != null) {
-                Marker marker = stream.markPosition();
+                ICharStream.IMarker marker = stream.markPosition();
                 stream.incPos();
                 try {
                     if (ATTR_PSEUDO_CLASS_SELECTOR.equals(attr)) {
@@ -349,10 +349,10 @@ public class CssSelectorTokenizer extends CompositeTokenizer {
                         }
                     }
                     if (skipValue(stream)) {
-                        Pointer begin = marker.getPointer();
-                        Pointer end = stream.getPointer();
-                        int len = end.len(begin);
-                        String str = marker.getSubstring(len);
+                        ICharStream.IPointer begin = marker.getPointer();
+                        ICharStream.IPointer end = stream.getPointer();
+                        int len = end.getPos() - begin.getPos();
+                        String str = getString(marker, len);
                         result = newToken(begin, end, str);
                         result.setAttrName(attr);
                         result.setMatchType(matchType);
@@ -402,10 +402,10 @@ public class CssSelectorTokenizer extends CompositeTokenizer {
         }
 
         @Override
-        public CssTagSelectorToken read(CharStream stream) {
+        public CssTagSelectorToken read(ICharStream stream) {
             CssTagSelectorToken result = null;
             ArrayList<CssAttrSelectorToken> attributes = null;
-            Pointer begin = stream.getPointer();
+            ICharStream.IPointer begin = stream.getPointer();
             String nameToken = readName(stream);
             while (true) {
                 CssAttrSelectorToken token = readAttrSelectorToken(stream);
@@ -417,7 +417,7 @@ public class CssSelectorTokenizer extends CompositeTokenizer {
                 }
                 attributes.add(token);
             }
-            Pointer end = stream.getPointer();
+            ICharStream.IPointer end = stream.getPointer();
             if (nameToken != null || attributes != null) {
                 StringBuilder buf = new StringBuilder();
                 if (nameToken != null) {
@@ -435,7 +435,7 @@ public class CssSelectorTokenizer extends CompositeTokenizer {
             return result;
         }
 
-        protected CssAttrSelectorToken readAttrSelectorToken(CharStream stream) {
+        protected CssAttrSelectorToken readAttrSelectorToken(ICharStream stream) {
             CssAttrSelectorToken token;
             token = CssSimpleAttrSelectorTokenizer.INSTANCE.read(stream);
             if (token == null) {
@@ -468,7 +468,7 @@ public class CssSelectorTokenizer extends CompositeTokenizer {
             && ch != ']';
     }
 
-    private static String readIdent(CharStream stream) {
+    private static String readIdent(ICharStream stream) {
         char ch = stream.getChar();
         String result = null;
         if (ch == '*') {
@@ -489,9 +489,9 @@ public class CssSelectorTokenizer extends CompositeTokenizer {
         return result;
     }
 
-    private static String readName(CharStream stream) {
+    private static String readName(ICharStream stream) {
         String result = null;
-        Marker marker = stream.markPosition();
+        ICharStream.IMarker marker = stream.markPosition();
         try {
             String name = readIdent(stream);
             char ch = stream.getChar();
@@ -499,10 +499,10 @@ public class CssSelectorTokenizer extends CompositeTokenizer {
                 name = readIdent(stream);
             }
             if (name != null) {
-                Pointer begin = marker.getPointer();
-                Pointer end = stream.getPointer();
-                int len = end.len(begin);
-                result = marker.getSubstring(len);
+                ICharStream.IPointer begin = marker.getPointer();
+                ICharStream.IPointer end = stream.getPointer();
+                int len = end.getPos() - begin.getPos();
+                result = AbstractTokenizer.getString(marker, len);
             }
             return result;
         } finally {
@@ -510,12 +510,12 @@ public class CssSelectorTokenizer extends CompositeTokenizer {
         }
     }
 
-    private static void skipSpaces(CharStream stream) {
+    private static void skipSpaces(ICharStream stream) {
         for (; Character.isSpaceChar(stream.getChar()); stream.incPos()) {
         }
     }
 
-    private static boolean skipValue(CharStream stream) {
+    private static boolean skipValue(ICharStream stream) {
         boolean result = false;
         char ch = stream.getChar();
         int i = 0;

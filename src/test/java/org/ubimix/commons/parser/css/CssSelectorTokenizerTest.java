@@ -8,6 +8,7 @@ import java.util.List;
 import junit.framework.TestCase;
 
 import org.ubimix.commons.parser.CharStream;
+import org.ubimix.commons.parser.ICharStream;
 import org.ubimix.commons.parser.css.CssSelectorTokenizer.CssAttrSelectorToken;
 import org.ubimix.commons.parser.css.CssSelectorTokenizer.CssCompositeAttrSelectorToken;
 import org.ubimix.commons.parser.css.CssSelectorTokenizer.CssSimpleAttrSelectorToken;
@@ -192,7 +193,7 @@ public class CssSelectorTokenizerTest extends TestCase {
         String str,
         String name,
         String[]... matches) {
-        CharStream stream = new CharStream(str);
+        ICharStream stream = new CharStream(str);
         CssTagSelectorToken token = new CssTagSelectorTokenizer().read(stream);
         assertNotNull(token);
         String nameToken = token.getNameToken();
@@ -228,7 +229,7 @@ public class CssSelectorTokenizerTest extends TestCase {
         String str,
         String name,
         String... attrs) {
-        CharStream stream = new CharStream(str);
+        ICharStream stream = new CharStream(str);
         CssTagSelectorToken token = new CssTagSelectorTokenizer().read(stream);
         assertNotNull(token);
         String nameToken = token.getNameToken();

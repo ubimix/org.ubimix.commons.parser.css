@@ -6,6 +6,7 @@ package org.ubimix.commons.parser.css;
 import junit.framework.TestCase;
 
 import org.ubimix.commons.parser.CharStream;
+import org.ubimix.commons.parser.ICharStream;
 import org.ubimix.commons.parser.css.CssSelectorParser.CssSelectorListener;
 import org.ubimix.commons.parser.css.CssSelectorParser.ICssSelectorListener;
 
@@ -44,7 +45,7 @@ public class CssSelectorParserTest extends TestCase {
     }
 
     private void test(String str, String control) {
-        CharStream stream = new CharStream(str);
+        ICharStream stream = new CharStream(str);
         CssSelectorParser parser = new CssSelectorParser();
         final StringBuilder buf = new StringBuilder();
         ICssSelectorListener listener = new CssSelectorListener() {
