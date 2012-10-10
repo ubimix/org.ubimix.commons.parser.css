@@ -7,8 +7,6 @@ import junit.framework.TestCase;
 
 import org.ubimix.commons.parser.CharStream;
 import org.ubimix.commons.parser.ICharStream;
-import org.ubimix.commons.parser.css.CssSelectorParser.CssSelectorListener;
-import org.ubimix.commons.parser.css.CssSelectorParser.ICssSelectorListener;
 
 /**
  * @author kotelnikov
@@ -42,6 +40,8 @@ public class CssSelectorParserTest extends TestCase {
         test(
             "div.umx-block .title > a:hover",
             "div[class~=umx-block] [class~=title] > a[:class~=hover]");
+
+        test("h1, h2, h3, h4, h5", "h1[], h2[], h3[], h4[], h5[]");
     }
 
     private void test(String str, String control) {

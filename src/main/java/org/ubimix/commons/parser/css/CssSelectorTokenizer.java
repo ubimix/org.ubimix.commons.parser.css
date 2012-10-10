@@ -9,8 +9,6 @@ import java.util.List;
 import org.ubimix.commons.parser.AbstractTokenizer;
 import org.ubimix.commons.parser.CompositeTokenizer;
 import org.ubimix.commons.parser.ICharStream;
-import org.ubimix.commons.parser.ICharStream.IMarker;
-import org.ubimix.commons.parser.ICharStream.IPointer;
 import org.ubimix.commons.parser.StreamToken;
 import org.ubimix.commons.parser.base.QuotedValueTokenizer;
 import org.ubimix.commons.parser.css.CssSelectorTokenizer.CssSimpleAttrSelectorToken.MatchType;
