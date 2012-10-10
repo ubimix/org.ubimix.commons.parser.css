@@ -46,7 +46,7 @@ public class CssSelectorParserTest extends TestCase {
 
     private void test(String str, String control) {
         ICharStream stream = new CharStream(str);
-        CssSelectorParser parser = new CssSelectorParser();
+        ICssSelectorParser parser = new CssSelectorParser();
         final StringBuilder buf = new StringBuilder();
         ICssSelectorListener listener = new CssSelectorListener() {
 

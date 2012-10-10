@@ -18,7 +18,9 @@ import org.ubimix.commons.parser.css.CssSelectorTokenizer.CssTagSelectorToken;
 /**
  * @author kotelnikov
  */
-public class CssSelectorParser extends AbstractParser<ICssSelectorListener> {
+public class CssSelectorParser extends AbstractParser<ICssSelectorListener>
+    implements
+    ICssSelectorParser {
 
     public CssSelectorParser() {
         super(new CssSelectorTokenizer());
