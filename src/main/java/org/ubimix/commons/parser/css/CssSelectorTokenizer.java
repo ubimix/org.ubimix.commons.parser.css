@@ -9,6 +9,7 @@ import java.util.List;
 import org.ubimix.commons.parser.AbstractTokenizer;
 import org.ubimix.commons.parser.CompositeTokenizer;
 import org.ubimix.commons.parser.ICharStream;
+import org.ubimix.commons.parser.ITokenizer;
 import org.ubimix.commons.parser.StreamToken;
 import org.ubimix.commons.parser.base.QuotedValueTokenizer;
 import org.ubimix.commons.parser.css.CssSelectorTokenizer.CssSimpleAttrSelectorToken.MatchType;
@@ -320,7 +321,7 @@ public class CssSelectorTokenizer extends CompositeTokenizer {
             CssSimpleAttrSelectorToken result = null;
             String attr = null;
             int valuePos = 1;
-            MatchType matchType = CssSimpleAttrSelectorToken.MatchType.INCLUDES;
+            MatchType matchType = CssSimpleAttrSelectorToken.MatchType.SUBSTRINGMATCH;
             char ch = stream.getChar();
             switch (ch) {
                 case ':':
@@ -455,6 +456,8 @@ public class CssSelectorTokenizer extends CompositeTokenizer {
     public static final String ATTR_PSEUDO_ELEMENT_SELECTOR = ":element";
 
     public static final String COMBINATOR = "combinator";
+
+    public static final ITokenizer INSTANCE = new CssSelectorTokenizer();
 
     public static final String SELECTOR = "selector";
 

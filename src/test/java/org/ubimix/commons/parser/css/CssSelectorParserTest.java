@@ -21,7 +21,10 @@ public class CssSelectorParserTest extends TestCase {
     }
 
     public void test() {
+        test("ns|tag.toto", "ns|tag[class~=toto]");
         test("a.toto", "a[class~=toto]");
+        test("::toto", "[:element~=toto]");
+        test("[ns1|attr=value]", "[ns1|attr=value]");
 
         test("", "");
         test("a.toto", "a[class~=toto]");
