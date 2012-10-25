@@ -21,28 +21,28 @@ public class CssSelectorParserTest extends TestCase {
     }
 
     public void test() {
-        test("ns|tag.toto", "ns|tag[class~=toto]");
-        test("a.toto", "a[class~=toto]");
-        test("::toto", "[:element~=toto]");
+        test("ns|tag.toto", "ns|tag[class*=toto]");
+        test("a.toto", "a[class*=toto]");
+        test("::toto", "[:element*=toto]");
         test("[ns1|attr=value]", "[ns1|attr=value]");
 
         test("", "");
-        test("a.toto", "a[class~=toto]");
-        test("a.toto#tata", "a[class~=toto id=tata]");
-        test(".titi#abc", "[class~=titi id=abc]");
-        test(".titi[a=b]#abc", "[class~=titi a=b id=abc]");
-        test(".titi[ a = b]#abc", "[class~=titi a=b id=abc]");
-        test(".titi[ a = b ]#abc", "[class~=titi a=b id=abc]");
+        test("a.toto", "a[class*=toto]");
+        test("a.toto#tata", "a[class*=toto id=tata]");
+        test(".titi#abc", "[class*=titi id=abc]");
+        test(".titi[a=b]#abc", "[class*=titi a=b id=abc]");
+        test(".titi[ a = b]#abc", "[class*=titi a=b id=abc]");
+        test(".titi[ a = b ]#abc", "[class*=titi a=b id=abc]");
         test(
             ".titi[  title  *=  'hello'  ]#abc",
-            "[class~=titi title*='hello' id=abc]");
+            "[class*=titi title*='hello' id=abc]");
 
         test(
             "div.umx-block .title > a",
-            "div[class~=umx-block] [class~=title] > a[]");
+            "div[class*=umx-block] [class*=title] > a[]");
         test(
             "div.umx-block .title > a:hover",
-            "div[class~=umx-block] [class~=title] > a[:class~=hover]");
+            "div[class*=umx-block] [class*=title] > a[:class*=hover]");
 
         test("h1, h2, h3, h4, h5", "h1[], h2[], h3[], h4[], h5[]");
     }
